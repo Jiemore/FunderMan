@@ -61,10 +61,16 @@ namespace Founder
                     SourcePath = ((JObject)jsonObject["Path"])["Source"].ToString();
                     string fn= ((JObject)jsonObject["FileName"])["yy-mm-dd"].ToString();
                     FileName = JsonConvert.DeserializeObject<List<string>>(fn);
-                    ObjectPath = RunPath + FileName[0].ToString();
+
+                    /*
+                     * 
+                     *根文件名格式获取未实现，目前写死
+                     * 
+                     */
+                    ObjectPath = RunPath + DateTime.Today.ToString("yyyy-MM-dd")+@"\" + FileName[0].ToString();
                     Auto = jsonObject["Auto"].ToString()=="False"?false:true;
 
-                   this.CreateDir();
+                    this.CreateDir();
                 }
                 catch (Exception e)
                 {

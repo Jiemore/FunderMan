@@ -19,45 +19,21 @@ namespace Founder
         }
 
 
-        public static int GetFilesCount(System.IO.DirectoryInfo dirInfo)
-        {
-            int totalFile = 0;
-            totalFile += dirInfo.GetFiles().Length;
-            foreach (System.IO.DirectoryInfo subdir in dirInfo.GetDirectories())
-            {
-                totalFile += GetFilesCount(subdir);
-            }
-            return totalFile;
-        }
-        static string SourePath,ObjectPath;
+        //线程
         ThreadStart en; 
         Thread thread; 
 
-        public void FunderMan() {
-            System.IO.DirectoryInfo dirInfo;
-            int front=0, back=0;
-            dirInfo = new System.IO.DirectoryInfo(SourePath);
-
-            while (true)
-            {
-                if ((front != back && back > front)||back==0)
-                    MessageBox.Show(front + ":" + back);
-                front = GetFilesCount(dirInfo);
-                Thread.Sleep(1000);
-                back = GetFilesCount(dirInfo);
-
-            }
-        }
         private void Home_Load(object sender, EventArgs e)
         {
             //初始化程序基本配置
             Configure configure = new Configure();
+            //读取配置信息
             configure.ReadConfig();
-           
-            SourePath = configure.SourcePath;
-            ObjectPath = configure.ObjectPath;
 
-            if (!Directory.Exists(SourePath) && !Directory.Exists(ObjectPath))
+            FunderMans.SourePath = configure.SourcePath;
+            FunderMans.ObjectPath = configure.ObjectPath;
+            tbSourcePath.Text = FunderMans.SourePath;
+            if (!Directory.Exists(FunderMans.SourePath) && !Directory.Exists(FunderMans.ObjectPath))
             {
                 MessageBox.Show("请检查config.json配置路径是否正确", "目标路径非法！");
                 Application.Exit();
@@ -67,7 +43,7 @@ namespace Founder
             if (configure.Auto)
             {
 
-                en = new ThreadStart(FunderMan);
+                en = new ThreadStart(FunderMans.FunderMan);
                 thread = new Thread(en);
                 thread.Start();
                 rbOn.Checked = true;
@@ -94,6 +70,7 @@ namespace Founder
 
         private void button1_Click(object sender, EventArgs e)
         {
+            //退出
             if (thread.ThreadState == ThreadState.Suspended)
             {
                 thread.Resume();
@@ -104,6 +81,39 @@ namespace Founder
 
             Application.Exit();
 
+        }
+
+        private void Home_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            //退出
+            if (thread.ThreadState == ThreadState.Suspended)
+            {
+                thread.Resume();
+                thread.Abort();
+            }
+            else
+                thread.Abort();
+
+            Application.Exit();
+        }
+
+        private void tbSourcePath_DoubleClick(object sender, EventArgs e)
+        {
+            FolderBrowserDialog path = new FolderBrowserDialog();
+            path.ShowDialog();
+            this.tbSourcePath.Text = path.SelectedPath;
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+            tbSourcePath.Text = FunderMans.SourePath;
+        }
+
+        private void tbSourcePath_DoubleClick_1(object sender, EventArgs e)
+        {
+            FolderBrowserDialog path = new FolderBrowserDialog();
+            path.ShowDialog();
+            this.tbSourcePath.Text = path.SelectedPath;
         }
     }
 }

@@ -64,6 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configure.cs" />
+    <Compile Include="FunderMans.cs" />
     <Compile Include="Home.cs">
       <SubType>Form</SubType>
     </Compile>
