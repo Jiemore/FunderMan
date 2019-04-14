@@ -27,6 +27,8 @@ namespace Founder
             string Date= DateTime.Today.ToString("yyyy-MM-dd");
             string DPath = string.Format(RunPath+Date);
             SFileName = FileName.ToArray();
+
+            //获取json配置,遍历创建文件夹
             if (!Directory.Exists(DPath))
             {
                 Directory.CreateDirectory(DPath);

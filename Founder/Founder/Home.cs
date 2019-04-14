@@ -21,41 +21,84 @@ namespace Founder
 
         //线程
         ThreadStart en; 
-        Thread thread; 
+        Thread thread;
+
+        //热键
+        HotKeys h = new HotKeys();
+        BasicOption basicOption = new BasicOption();
 
         private void Home_Load(object sender, EventArgs e)
         {
             //初始化程序基本配置
-            Configure configure = new Configure();
-            //读取配置信息
-            configure.ReadConfig();
+            try
+            {
+                Configure configure = new Configure();
+                //读取配置信息
+                configure.ReadConfig();
 
-            FunderMans.SourePath = configure.SourcePath;
-            FunderMans.ObjectPath = configure.ObjectPath;
-            tbSourcePath.Text = FunderMans.SourePath;
-            if (!Directory.Exists(FunderMans.SourePath) && !Directory.Exists(FunderMans.ObjectPath))
-            {
-                MessageBox.Show("请检查config.json配置路径是否正确", "目标路径非法！");
-                Application.Exit();
-                return;
-            }
-            //自动化
-            if (configure.Auto)
-            {
+                FunderMans.SourePath = configure.SourcePath;
+                FunderMans.ObjectPath = configure.ObjectPath;
+                tbSourcePath.Text = FunderMans.SourePath;
+                if (!Directory.Exists(FunderMans.SourePath) && !Directory.Exists(FunderMans.ObjectPath))
+                {
+                    MessageBox.Show("请检查config.json配置路径是否正确", "目标路径非法！");
+                    Application.Exit();
+                    return;
+                }
+                //自动化
+                if (configure.Auto)
+                {
 
-                en = new ThreadStart(FunderMans.FunderMan);
-                thread = new Thread(en);
-                thread.Start();
-                rbOn.Checked = true;
+                    en = new ThreadStart(FunderMans.FunderMan);
+                    thread = new Thread(en);
+                    thread.Start();
+                    rbOn.Checked = true;
+                }
+                else
+                {
+                    rbOff.Checked = true;
+                    MessageBox.Show("nos");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                rbOff.Checked = true;
-                MessageBox.Show("nos");
+                MessageBox.Show(ex.Message);
+                btnExit_Click(null,null);
             }
+            //注册热键
+            try
+            {
+                basicOption.sourcePath = FunderMans.SourePath;
+                basicOption.objectPath = FunderMans.ObjectPath;
+                
+                //弹出保存路径的文件夹
+                h.Regist(this.Handle,
+                   (int)HotKeys.HotkeyModifiers.Control,
+                    Keys.F11, ShowDirToSave);
+                
+                //弹出复制源路径的文件夹
+                h.Regist(this.Handle, 
+                    (int)HotKeys.HotkeyModifiers.Control, Keys.F12, basicOption.ShowDirToCopy);   
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                MessageBox.Show("绑定热键无效！");
+            }
+
 
         }
-
+        protected override void WndProc(ref Message m)
+        {
+            //窗口消息处理函数
+            h.ProcessHotKey(m);
+            base.WndProc(ref m);
+        }
+        void ShowDirToSave()
+        {
+            //MessageBox.Show(SaveToPath);
+            System.Diagnostics.Process.Start("explorer", FunderMans.ObjectPath);
+        }
         private void rbOn_CheckedChanged(object sender, EventArgs e)
         {
             if (thread.ThreadState == ThreadState.Suspended)
@@ -68,33 +111,10 @@ namespace Founder
                 thread.Suspend();
         }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            //退出
-            if (thread.ThreadState == ThreadState.Suspended)
-            {
-                thread.Resume();
-                thread.Abort();
-            }
-            else
-                thread.Abort();
-
-            Application.Exit();
-
-        }
 
         private void Home_FormClosing(object sender, FormClosingEventArgs e)
         {
-            //退出
-            if (thread.ThreadState == ThreadState.Suspended)
-            {
-                thread.Resume();
-                thread.Abort();
-            }
-            else
-                thread.Abort();
-
-            Application.Exit();
+            btnExit_Click(null, null);
         }
 
         private void tbSourcePath_DoubleClick(object sender, EventArgs e)
@@ -114,6 +134,61 @@ namespace Founder
             FolderBrowserDialog path = new FolderBrowserDialog();
             path.ShowDialog();
             this.tbSourcePath.Text = path.SelectedPath;
+        }
+
+        private void MaxShowToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.Show();
+            this.WindowState = FormWindowState.Normal;
+            /*
+             * this.ShowInTaskbar = true;
+             * 在任务栏显示
+             */
+
+        }
+
+        private void MiniShowToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+                this.Hide();
+        }
+
+        private void notifyIcon1_DoubleClick(object sender, EventArgs e)
+        {
+            MaxShowToolStripMenuItem_Click(null,null);
+        }
+
+        private void ExitToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            btnExit_Click(null,null);
+        }
+
+        private void btnExit_Click(object sender, EventArgs e)
+        {
+            //注销热键
+            h.UnRegist(this.Handle,basicOption.ShowDirToSave);
+            h.UnRegist(this.Handle,basicOption.ShowDirToCopy);
+
+            //关闭最小化托盘小图标
+            this.notifyIcon1.Visible = false;
+
+            //退出线程
+            if (thread.ThreadState == ThreadState.Suspended)
+            {
+                thread.Resume();
+                thread.Abort();
+            }
+            else
+                thread.Abort();
+
+            //主程序退出
+            Application.Exit();
+        }
+
+        private void 帮助ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show("1)Ctrl + F11 : 打开保存路径的文件夹\n" +
+                "2)Ctrl + F12 : 打开源路径的文件夹", "帮助");
         }
     }
 }
