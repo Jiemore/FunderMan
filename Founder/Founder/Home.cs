@@ -63,7 +63,7 @@ namespace Founder
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
-                btnExit_Click(null,null);
+                Application.Exit();
             }
             //注册热键
             try
@@ -172,14 +172,24 @@ namespace Founder
             //关闭最小化托盘小图标
             this.notifyIcon1.Visible = false;
 
-            //退出线程
-            if (thread.ThreadState == ThreadState.Suspended)
+
+            //捕获线程异常，或线程并未创建
+            try
             {
-                thread.Resume();
-                thread.Abort();
+                //退出线程
+                if (thread.ThreadState == ThreadState.Suspended)
+                {
+                    thread.Resume();
+                    thread.Abort();
+                }
+                else
+                    thread.Abort();
             }
-            else
-                thread.Abort();
+            catch 
+            {
+                Application.Exit();
+            }
+
 
             //主程序退出
             Application.Exit();

@@ -23,6 +23,10 @@ namespace Founder
         public Configure(){
             RunPath = AppDomain.CurrentDomain.BaseDirectory;
         }
+        /// <summary>
+        /// 创建文件夹
+        /// </summary>
+        /// <returns>成功返回True，失败返回False</returns>
         public bool CreateDir() {
             string Date= DateTime.Today.ToString("yyyy-MM-dd");
             string DPath = string.Format(RunPath+Date);
@@ -45,7 +49,9 @@ namespace Founder
             else
                 return false;
         }
-        //Read Config File
+        /// <summary>
+        /// Read Config File
+        /// </summary>
         public void ReadConfig() {
 
             //判断配置文件是否存在
